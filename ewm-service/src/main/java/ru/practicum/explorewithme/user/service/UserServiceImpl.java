@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.practicum.explorewithme.common.PageCreatorUtil;
+import ru.practicum.explorewithme.common.util.PageCreatorUtil;
 import ru.practicum.explorewithme.user.dto.UserDto;
 import ru.practicum.explorewithme.user.dto.UserMapper;
 import ru.practicum.explorewithme.user.exception.UserNotFoundException;

@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme.common;
+package ru.practicum.explorewithme.common.util;
 
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.explorewithme.common.exceptions.PaginationException;
