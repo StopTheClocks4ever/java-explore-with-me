@@ -10,8 +10,6 @@ import ru.practicum.explorewithme.user.exception.UserNotFoundException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
