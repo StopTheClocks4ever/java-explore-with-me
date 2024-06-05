@@ -18,4 +18,8 @@ public interface EventService {
     EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest request);
 
     List<EventShortDto> findEventsPublic(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd, Boolean onlyAvailable, String sort, int from, int size, HttpServletRequest request);
+
+    EventFullDto findEventPublic(Long id, HttpServletRequest request);
+
+    List<EventFullDto> findEventsAdmin(List<Long> users, List<String> states, List<Long> categories, String rangeStart, String rangeEnd, int from, int size);
 }

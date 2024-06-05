@@ -51,6 +51,7 @@ public class EventController {
     public EventFullDto patchEvent(@PathVariable Long userId,
                                    @PathVariable Long eventId,
                                    @Valid @RequestBody UpdateEventUserRequest request) {
+        log.info("Получен запрос PATCH /users/" + userId + "/events/" + eventId);
         return eventService.updateEvent(userId, eventId, request);
     }
 
@@ -66,6 +67,26 @@ public class EventController {
                                                @RequestParam(defaultValue = "0") int from,
                                                @RequestParam(defaultValue = "10") int size,
                                                HttpServletRequest request) {
+        log.info("Получен запрос GET /events");
         return eventService.findEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
+    }
+
+    @GetMapping("/events/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EventFullDto getEventPublic(@PathVariable Long id,
+                                       HttpServletRequest request) {
+        return eventService.findEventPublic(id, request);
+    }
+
+    @GetMapping("/admin/events")
+    @ResponseStatus(HttpStatus.OK)
+    public List<EventFullDto> getEventsAdmin(@RequestParam(required = false) List<Long> users,
+                                             @RequestParam(required = false) List<String> states,
+                                             @RequestParam(required = false) List<Long> categories,
+                                             @RequestParam(required = false) String rangeStart,
+                                             @RequestParam(required = false) String rangeEnd,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "10") int size) {
+        return eventService.findEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 }

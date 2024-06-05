@@ -78,4 +78,11 @@ public class StatsServiceImpl implements StatsService {
         log.info("Получена статистика: " + stats);
         return sortedStats;
     }
+
+    @Override
+    public Boolean checkUnique(String uri, String ip) {
+        List<EndpointHit> hits = hitRepository.findAllByIpAndUri(ip, uri);
+        return hits.isEmpty();
+    }
+
 }

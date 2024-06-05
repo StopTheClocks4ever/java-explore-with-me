@@ -27,7 +27,9 @@ import ru.practicum.explorewithme.user.repository.UserRepository;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -137,7 +139,7 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> findEventsPublic(String textParameter, List<Long> categoriesId, Boolean paid, String rangeStartParameter,
                                                 String rangeEndParameter, Boolean onlyAvailable, String sortParameter, int from, int size,
                                                 HttpServletRequest request) {
-        String text;
+        String text = null;
         LocalDateTime rangeStart;
         LocalDateTime rangeEnd;
         String sort;
@@ -182,9 +184,139 @@ public class EventServiceImpl implements EventService {
 
         statsClient.addHit(new EndpointHitDto("ewm-service", request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now().format(FORMATTER)));
 
+        List<Event> events;
+        if (text != null && paid != null && categories != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(text, paid, rangeStart, rangeEnd, categories, page);
+        } else if (text != null && paid != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(text, paid, rangeStart, rangeEnd, page);
+        } else if (text != null && categories != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(text, rangeStart, rangeEnd, categories, page);
+        } else if (paid != null && categories != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(paid, rangeStart, rangeEnd, categories, page);
+        } else if (text != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(text, rangeStart, rangeEnd, page);
+        } else if (paid != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(paid, rangeStart, rangeEnd, page);
+        } else if (categories != null && onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(rangeStart, rangeEnd, categories, page);
+        } else if (onlyAvailable) {
+            events = eventRepository.findAllOnlyAvailable(rangeStart, rangeEnd, page);
+        } else if (text != null && paid != null && categories != null) {
+            events = eventRepository.findAll(text, paid, rangeStart, rangeEnd, categories, page);
+        } else if (text != null && paid != null) {
+            events = eventRepository.findAll(text, paid, rangeStart, rangeEnd, page);
+        } else if (text != null && categories != null) {
+            events = eventRepository.findAll(text, rangeStart, rangeEnd, categories, page);
+        } else if (paid != null && categories != null) {
+            events = eventRepository.findAll(paid, rangeStart, rangeEnd, categories, page);
+        } else if (text != null) {
+            events = eventRepository.findAll(text, rangeStart, rangeEnd, page);
+        } else if (paid != null) {
+            events = eventRepository.findAll(paid, rangeStart, rangeEnd, page);
+        } else if (categories != null) {
+            events = eventRepository.findAll(rangeStart, rangeEnd, categories, page);
+        } else {
+            events = eventRepository.findAll(rangeStart, rangeEnd, page);
+        }
 
-        return null;
+        if (events == null) {
+            events = new ArrayList<>();
+        }
+
+        log.info("События по указаным параметрам найдены");
+        return EventMapper.listToEventShortDto(events);
     }
 
+    @Override
+    public EventFullDto findEventPublic(Long id, HttpServletRequest request) {
+        Event event = eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException("События с id = " + id + " не существует"));
+        if (event.getState() != State.PUBLISHED) {
+            throw new EventNotFoundException("Событие с id = " + id + " еще на модерации");
+        }
 
+        Boolean unique = statsClient.checkUnique(request.getRequestURI(), request.getRemoteAddr());
+        if (unique) {
+            event.setViews(event.getViews() + 1);
+            eventRepository.save(event);
+        }
+
+        statsClient.addHit(new EndpointHitDto("ewm-service", request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now().format(FORMATTER)));
+        log.info("Возвращаю найденное событие");
+        return EventMapper.toEventFullDto(event);
+    }
+
+    @Override
+    public List<EventFullDto> findEventsAdmin(List<Long> usersIds, List<String> states, List<Long> categoriesIds, String rangeStartParameter, String rangeEndParameter, int from, int size) {
+        List<User> users;
+        if (usersIds != null) {
+            users = userRepository.findAllById(usersIds);
+        } else {
+            users = null;
+        }
+
+        List<State> statesEnum;
+        if (states != null) {
+            statesEnum = states.stream().map(State::valueOf).collect(Collectors.toList());
+        } else {
+            statesEnum = null;
+        }
+
+        List<Category> categories;
+        if (categoriesIds != null) {
+            categories = categoryRepository.findAllById(categoriesIds);
+            if (categories.size() == 0) {
+                categories = null;
+            }
+        } else {
+            categories = null;
+        }
+
+        LocalDateTime rangeStart;
+        LocalDateTime rangeEnd;
+        if (rangeStartParameter != null) {
+            rangeStart = LocalDateTime.parse(rangeStartParameter, FORMATTER);
+        } else {
+            rangeStart = LocalDateTime.now();
+        }
+        if (rangeEndParameter != null) {
+            rangeEnd = LocalDateTime.parse(rangeEndParameter, FORMATTER);
+            if (rangeEnd.isBefore(rangeStart)) {
+                throw new NotValidException("Окончание мероприятия не может быть раньше его начала");
+            }
+        } else {
+            rangeEnd = LocalDateTime.now().plusMonths(3);
+        }
+
+        PageRequest page = PageCreatorUtil.createPage(from, size);
+
+        List<Event> events;
+        if (users != null && statesEnum != null && categories != null) {
+            events = eventRepository.findAllByInitiatorInAndStateInAndCategoryInAndEventDateIsAfterAndEventDateIsBefore(users,
+                    statesEnum, categories, rangeStart, rangeEnd, page);
+        } else if (users != null && statesEnum != null) {
+            events = eventRepository.findAllByInitiatorInAndStateInAndEventDateIsAfterAndEventDateIsBefore(users, statesEnum,
+                    rangeStart, rangeEnd, page);
+        } else if (users != null && categories != null) {
+            events = eventRepository.findAllByInitiatorInAndCategoryInAndEventDateIsAfterAndEventDateIsBefore(users, categories,
+                    rangeStart, rangeEnd, page);
+        } else if (statesEnum != null && categories != null) {
+            events = eventRepository.findAllByStateInAndCategoryInAndEventDateIsAfterAndEventDateIsBefore(statesEnum,
+                    categories, rangeStart, rangeEnd, page);
+        } else if (users != null) {
+            events = eventRepository.findAllByInitiatorInAndEventDateIsAfterAndEventDateIsBefore(users, rangeStart, rangeEnd, page);
+        } else if (statesEnum != null) {
+            events = eventRepository.findAllByStateInAndEventDateIsAfterAndEventDateIsBefore(statesEnum, rangeStart, rangeEnd, page);
+        } else  if (categories != null) {
+            events = eventRepository.findAllByCategoryInAndEventDateIsAfterAndEventDateIsBefore(categories, rangeStart, rangeEnd, page);
+        } else {
+            events = eventRepository.findAllByEventDateIsAfterAndEventDateIsBefore(rangeStart, rangeEnd, page);
+        }
+
+        if (events == null) {
+            events = new ArrayList<>();
+        }
+
+        log.info("События по указаным параметрам найдены");
+        return EventMapper.listToEventFullDto(events);
+    }
 }

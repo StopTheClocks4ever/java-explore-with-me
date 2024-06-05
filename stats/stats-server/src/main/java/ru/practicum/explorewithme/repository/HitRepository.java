@@ -11,4 +11,6 @@ public interface HitRepository extends JpaRepository<EndpointHit, Long> {
     List<EndpointHit> findAllByTimestampIsAfterAndTimestampIsBefore(LocalDateTime start, LocalDateTime end);
 
     List<EndpointHit> findAllByTimestampIsAfterAndTimestampIsBeforeAndUriIsIn(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    List<EndpointHit> findAllByIpAndUri(String uri, String ip);
 }
