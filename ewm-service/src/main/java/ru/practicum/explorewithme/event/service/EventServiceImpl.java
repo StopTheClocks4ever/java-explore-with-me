@@ -117,11 +117,12 @@ public class EventServiceImpl implements EventService {
             event.setRequestModeration(request.getRequestModeration());
         }
         if (request.getStateAction() != null) {
-            if (request.getStateAction() == StateAction.SEND_TO_REVIEW) {
+            StateAction stateAction = StateAction.valueOf(request.getStateAction());
+            if (stateAction == StateAction.SEND_TO_REVIEW) {
                 event.setState(State.PENDING);
-            } else if (request.getStateAction() == StateAction.CANCEL_REVIEW) {
+            } else if (stateAction == StateAction.CANCEL_REVIEW) {
                 event.setState(State.CANCELED);
-            } else if (request.getStateAction() == StateAction.PUBLISH_EVENT) {
+            } else if (stateAction == StateAction.PUBLISH_EVENT) {
                 event.setState(State.PUBLISHED);
             } else {
                 event.setState(State.CANCELED);
@@ -318,5 +319,70 @@ public class EventServiceImpl implements EventService {
 
         log.info("События по указаным параметрам найдены");
         return EventMapper.listToEventFullDto(events);
+    }
+
+    @Override
+    public EventFullDto patchEventAdmin(Long eventId, UpdateEventAdminRequest request) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("События с id = " + eventId + " не существует"));
+        if (request.getEventDate() != null) {
+            if (LocalDateTime.parse(request.getEventDate(), FORMATTER).isBefore(LocalDateTime.now().plusHours(2))) {
+                throw new EventIsTooSoonException("Нельзя изменять мероприятие меньше чем за 2 часа до его начала");
+            }
+        }
+        if (request.getStateAction() != null) {
+            StateAction stateAction = StateAction.valueOf(request.getStateAction());
+            if (stateAction == StateAction.PUBLISH_EVENT) {
+                if (event.getState() != State.PENDING) {
+                    throw new EventIsNotPendingException("Нельзя опубликовать событие, если его статус не PENDING");
+                }
+            }
+            if (stateAction == StateAction.REJECT_EVENT) {
+                if (event.getState() == State.PUBLISHED) {
+                    throw new EventIsNotPendingException("Нельзя отклонить опубликованное событие");
+                }
+            }
+        }
+        if (request.getAnnotation() != null) {
+            event.setAnnotation(request.getAnnotation());
+        }
+        if (request.getCategory() != null) {
+            event.setCategory(categoryRepository.findById(request.getCategory()).orElseThrow(() -> new CategoryNotFoundException("Категории с id = " + request.getCategory() + " не существует")));
+        }
+        if (request.getDescription() != null) {
+            event.setDescription(request.getDescription());
+        }
+        if (request.getEventDate() != null) {
+            event.setEventDate(LocalDateTime.parse(request.getEventDate(), FORMATTER));
+        }
+        if (request.getLocation() != null) {
+            event.setLocation(LocationMapper.toLocation(request.getLocation()));
+        }
+        if (request.getPaid() != null) {
+            event.setPaid(request.getPaid());
+        }
+        if (request.getParticipantsLimit() != null) {
+            event.setParticipantLimit(request.getParticipantsLimit());
+        }
+        if (request.getRequestModeration() != null) {
+            event.setRequestModeration(request.getRequestModeration());
+        }
+        if (request.getStateAction() != null) {
+            StateAction stateAction = StateAction.valueOf(request.getStateAction());
+            if (stateAction == StateAction.SEND_TO_REVIEW) {
+                event.setState(State.PENDING);
+            } else if (stateAction == StateAction.CANCEL_REVIEW) {
+                event.setState(State.CANCELED);
+            } else if (stateAction == StateAction.PUBLISH_EVENT) {
+                event.setState(State.PUBLISHED);
+            } else {
+                event.setState(State.CANCELED);
+            }
+        }
+        if (request.getTitle() != null) {
+            event.setTitle(request.getTitle());
+        }
+        Event updatedEvent = eventRepository.save(event);
+        log.info("Событие: " + event + "обновлено");
+        return EventMapper.toEventFullDto(event);
     }
 }

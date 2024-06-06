@@ -2,7 +2,6 @@ package ru.practicum.explorewithme.event.dto;
 
 import lombok.Getter;
 import org.hibernate.validator.constraints.Length;
-import ru.practicum.explorewithme.event.model.StateAction;
 
 @Getter
 public class UpdateEventUserRequest {
@@ -17,7 +16,7 @@ public class UpdateEventUserRequest {
     private Boolean paid;
     private Integer participantsLimit;
     private Boolean requestModeration;
-    private StateAction stateAction;
+    private String stateAction;
     @Length(max = 256)
     private String title;
 }

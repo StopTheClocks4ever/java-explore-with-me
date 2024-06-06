@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.explorewithme.event.dto.EventFullDto;
-import ru.practicum.explorewithme.event.dto.EventShortDto;
-import ru.practicum.explorewithme.event.dto.NewEventDto;
-import ru.practicum.explorewithme.event.dto.UpdateEventUserRequest;
+import ru.practicum.explorewithme.event.dto.*;
 import ru.practicum.explorewithme.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +72,7 @@ public class EventController {
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto getEventPublic(@PathVariable Long id,
                                        HttpServletRequest request) {
+        log.info("Получен запрос GET /events/" + id);
         return eventService.findEventPublic(id, request);
     }
 
@@ -87,6 +85,15 @@ public class EventController {
                                              @RequestParam(required = false) String rangeEnd,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size) {
+        log.info("Получен запрос GET /admin/events");
         return eventService.findEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+    }
+
+    @PatchMapping("/admin/events/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
+    public EventFullDto patchEventAdmin(@PathVariable Long eventId,
+                                        @Valid @RequestBody UpdateEventAdminRequest request) {
+        log.info("Получен запрос GET /admin/events/{eventId}");
+        return eventService.patchEventAdmin(eventId, request);
     }
 }
