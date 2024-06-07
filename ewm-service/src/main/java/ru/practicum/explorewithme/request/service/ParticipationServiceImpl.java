@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.event.exception.EventNotFoundException;
+import ru.practicum.explorewithme.request.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.explorewithme.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.explorewithme.request.exception.*;
 import ru.practicum.explorewithme.event.model.Event;
 import ru.practicum.explorewithme.event.model.State;
@@ -19,6 +21,7 @@ import ru.practicum.explorewithme.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -57,10 +60,13 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
             throw new EventIsNotPublishedException("Нельзя участвовать в неопубликованном событии");
         }
 
-        if (!event.getRequestModeration() || event.getConfirmedRequests() < event.getParticipantLimit()) {
+        if (!event.getRequestModeration()) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventRepository.save(event);
             ParticipationRequest participationRequest = new ParticipationRequest(null, LocalDateTime.now(), event, user, State.CONFIRMED);
+            return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
+        } else if (event.getConfirmedRequests() < event.getParticipantLimit()){
+            ParticipationRequest participationRequest = new ParticipationRequest(null, LocalDateTime.now(), event, user, State.PENDING);
             return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
         } else {
             throw new ParticipationLimitExceededException("Лимит участников превышен");
@@ -76,5 +82,49 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
         }
         request.setStatus(State.CANCELED);
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(request));
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getParticipationRequests(Long userId, Long eventId) {
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllByEventInitiatorIdAndEventId(userId, eventId);
+        return ParticipationRequestMapper.listToParticipationRequestDto(participationRequests);
+    }
+
+    @Override
+    public EventRequestStatusUpdateResult updateParticipationRequest(Long userId, Long eventId, EventRequestStatusUpdateRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("События с id = " + eventId + " не существует"));
+        List<ParticipationRequest> participationRequests = participationRequestRepository.findAllById(request.getRequestIds());
+        if (!event.getRequestModeration()) {
+            if (event.getConfirmedRequests() <= event.getParticipantLimit()) {
+                throw new ParticipationLimitExceededException("Лимит участников превышен");
+            }
+            for (ParticipationRequest participationRequest : participationRequests) {
+                participationRequest.setStatus(State.CONFIRMED);
+                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            }
+            eventRepository.save(event);
+            return new EventRequestStatusUpdateResult(ParticipationRequestMapper.listToParticipationRequestDto(participationRequests), new ArrayList<>());
+        }
+
+        List<ParticipationRequest> confirmedRequests = new ArrayList<>();
+        List<ParticipationRequest> rejectedRequests = new ArrayList<>();
+        State status = State.valueOf(request.getStatus());
+
+        for (ParticipationRequest participationRequest : participationRequests) {
+            if (status == State.CONFIRMED) {
+                if (event.getConfirmedRequests() <= event.getParticipantLimit()) {
+                    throw new ParticipationLimitExceededException("Лимит участников превышен");
+                }
+                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+                participationRequest.setStatus(State.CONFIRMED);
+                confirmedRequests.add(participationRequest);
+            } else {
+                participationRequest.setStatus(State.REJECTED);
+                rejectedRequests.add(participationRequest);
+            }
+        }
+        eventRepository.save(event);
+        return new EventRequestStatusUpdateResult(ParticipationRequestMapper.listToParticipationRequestDto(confirmedRequests), ParticipationRequestMapper.listToParticipationRequestDto(rejectedRequests));
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.event.dto.*;
 import ru.practicum.explorewithme.event.service.EventService;
+import ru.practicum.explorewithme.request.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.explorewithme.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
 import ru.practicum.explorewithme.request.service.ParticipationRequestService;
 
@@ -38,7 +40,7 @@ public class EventController {
         return eventService.findEventsByCurrentUser(userId, from, size);
     }
 
-    @GetMapping("users/{userId}/events/{eventId}")
+    @GetMapping("/users/{userId}/events/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto getEventByCurrentUser(@PathVariable Long userId,
                                               @PathVariable Long eventId) {
@@ -46,7 +48,7 @@ public class EventController {
         return eventService.findEventByCurrentUser(userId, eventId);
     }
 
-    @PatchMapping("users/{userId}/events/{eventId}")
+    @PatchMapping("/users/{userId}/events/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto patchEvent(@PathVariable Long userId,
                                    @PathVariable Long eventId,
@@ -54,6 +56,24 @@ public class EventController {
         log.info("Получен запрос PATCH /users/" + userId + "/events/" + eventId);
         return eventService.updateEvent(userId, eventId, request);
     }
+
+    @GetMapping("/users/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ParticipationRequestDto> getParticipationRequests(@PathVariable Long userId,
+                                                                  @PathVariable Long eventId) {
+        log.info("Получен запрос GET /users/" + userId + "/events/" + eventId + "/requests");
+        return participationRequestService.getParticipationRequests(userId, eventId);
+    }
+
+    @PatchMapping("/users/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public EventRequestStatusUpdateResult updateParticipationRequest(@PathVariable Long userId,
+                                                                     @PathVariable Long eventId,
+                                                                     @RequestBody EventRequestStatusUpdateRequest request) {
+        log.info("Получен запрос PATCH /users/" + userId + "/events/" + eventId + "/requests");
+        return participationRequestService.updateParticipationRequest(userId, eventId, request);
+    }
+
 
     @GetMapping("/events")
     @ResponseStatus(HttpStatus.OK)
