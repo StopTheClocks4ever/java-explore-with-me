@@ -1,0 +1,80 @@
+package ru.practicum.explorewithme.request.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import ru.practicum.explorewithme.event.exception.EventNotFoundException;
+import ru.practicum.explorewithme.request.exception.*;
+import ru.practicum.explorewithme.event.model.Event;
+import ru.practicum.explorewithme.event.model.State;
+import ru.practicum.explorewithme.event.repository.EventRepository;
+import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
+import ru.practicum.explorewithme.request.dto.ParticipationRequestMapper;
+import ru.practicum.explorewithme.request.model.ParticipationRequest;
+import ru.practicum.explorewithme.request.repository.ParticipationRequestRepository;
+import ru.practicum.explorewithme.user.exception.UserNotFoundException;
+import ru.practicum.explorewithme.user.model.User;
+import ru.practicum.explorewithme.user.repository.UserRepository;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+public class ParticipationServiceImpl implements ParticipationRequestService {
+
+    private final ParticipationRequestRepository participationRequestRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @Override
+    public List<ParticipationRequestDto> getUsersRequests(Long userId) {
+        List<ParticipationRequest> userRequests = participationRequestRepository.findAllByRequesterId(userId);
+        log.info("Возвращаю список запросов пользователя с id = " + userId);
+        return ParticipationRequestMapper.listToParticipationRequestDto(userRequests);
+    }
+
+    @Override
+    public ParticipationRequestDto createRequest(Long userId, Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("События с id = " + eventId + " не существует"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
+
+        List<ParticipationRequestDto> existedRequests = getUsersRequests(userId);
+        for (ParticipationRequestDto participationRequestDto : existedRequests) {
+            if (participationRequestDto.getEvent() == eventId) {
+                throw new DuplicateRequestException("Запрос на участие в этом событии уже создан");
+            }
+        }
+        if (event.getInitiator().getId() == userId) {
+            throw new OwnerRequestException("Инициатор события не может добавить запрос на участие в своём событии");
+        }
+        if (event.getState() != State.PUBLISHED) {
+            throw new EventIsNotPublishedException("Нельзя участвовать в неопубликованном событии");
+        }
+
+        if (!event.getRequestModeration() || event.getConfirmedRequests() < event.getParticipantLimit()) {
+            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
+            ParticipationRequest participationRequest = new ParticipationRequest(null, LocalDateTime.now(), event, user, State.CONFIRMED);
+            return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
+        } else {
+            throw new ParticipationLimitExceededException("Лимит участников превышен");
+        }
+    }
+
+    @Override
+    public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
+        ParticipationRequest request = participationRequestRepository.findById(requestId).orElseThrow(() -> new RequestNotFoundException("Запроса с id = " + requestId + " не существует"));
+        if (request.getRequester().getId() != userId) {
+            throw new OwnerRequestException("Пользователь с id =" + userId + " не является инициатором запроса с id = " + requestId);
+        }
+        request.setStatus(State.CANCELED);
+        return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(request));
+    }
+}

@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.event.dto.*;
 import ru.practicum.explorewithme.event.service.EventService;
+import ru.practicum.explorewithme.request.dto.ParticipationRequestDto;
+import ru.practicum.explorewithme.request.service.ParticipationRequestService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -17,6 +19,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final ParticipationRequestService participationRequestService;
 
     @PostMapping("/users/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
@@ -95,5 +98,28 @@ public class EventController {
                                         @Valid @RequestBody UpdateEventAdminRequest request) {
         log.info("Получен запрос GET /admin/events/{eventId}");
         return eventService.patchEventAdmin(eventId, request);
+    }
+
+    @GetMapping("/users/{userId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ParticipationRequestDto> getUsersRequests(@PathVariable Long userId) {
+        log.info("Получен запрос GET /users/" + userId + "/events");
+        return participationRequestService.getUsersRequests(userId);
+    }
+
+    @PostMapping("/users/{userId}/requests")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ParticipationRequestDto createRequest(@PathVariable Long userId,
+                                                 @RequestParam Long eventId) {
+        log.info("Получен запрос POST /users/" + userId + "/events, eventId = " + eventId);
+        return participationRequestService.createRequest(userId, eventId);
+    }
+
+    @PatchMapping("/users/{userId}/requests/{requestId}/cancel")
+    @ResponseStatus(HttpStatus.OK)
+    public ParticipationRequestDto cancelRequest(@PathVariable Long userId,
+                                                 @PathVariable Long requestId) {
+        log.info("Получен запрос PATCH /users/" + userId + "/requests/" + requestId + "cancel");
+        return participationRequestService.cancelRequest(userId, requestId);
     }
 }
