@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -49,11 +50,11 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
 
         List<ParticipationRequestDto> existedRequests = getUsersRequests(userId);
         for (ParticipationRequestDto participationRequestDto : existedRequests) {
-            if (participationRequestDto.getEvent() == eventId) {
+            if (Objects.equals(participationRequestDto.getEvent(), eventId)) {
                 throw new DuplicateRequestException("Запрос на участие в этом событии уже создан");
             }
         }
-        if (event.getInitiator().getId() == userId) {
+        if (Objects.equals(event.getInitiator().getId(), userId)) {
             throw new OwnerRequestException("Инициатор события не может добавить запрос на участие в своём событии");
         }
         if (event.getState() != State.PUBLISHED) {
@@ -77,7 +78,7 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
         ParticipationRequest request = participationRequestRepository.findById(requestId).orElseThrow(() -> new RequestNotFoundException("Запроса с id = " + requestId + " не существует"));
-        if (request.getRequester().getId() != userId) {
+        if (!Objects.equals(request.getRequester().getId(), userId)) {
             throw new OwnerRequestException("Пользователь с id =" + userId + " не является инициатором запроса с id = " + requestId);
         }
         request.setStatus(State.CANCELED);
