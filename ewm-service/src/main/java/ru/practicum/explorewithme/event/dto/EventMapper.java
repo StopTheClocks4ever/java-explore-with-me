@@ -39,6 +39,24 @@ public class EventMapper {
     }
 
     public static Event toEvent(NewEventDto newEventDto, User user, Category category, Location location) {
+        Boolean paid;
+        Boolean requestModeration;
+        Integer participantLimit;
+        if (newEventDto.getPaid() == null) {
+            paid = false;
+        } else {
+            paid = newEventDto.getPaid();
+        }
+        if (newEventDto.getRequestModeration() == null) {
+            requestModeration = true;
+        } else {
+            requestModeration = newEventDto.getRequestModeration();
+        }
+        if (newEventDto.getParticipantLimit() == null) {
+            participantLimit = 0;
+        } else {
+            participantLimit = newEventDto.getParticipantLimit();
+        }
         return new Event(
                 null,
                 newEventDto.getAnnotation(),
@@ -49,10 +67,10 @@ public class EventMapper {
                 LocalDateTime.parse(newEventDto.getEventDate(), FORMATTER),
                 user,
                 location,
-                newEventDto.getPaid(),
-                newEventDto.getParticipantLimit(),
+                paid,
+                participantLimit,
                 LocalDateTime.now(),
-                newEventDto.getRequestModeration(),
+                requestModeration,
                 State.PENDING,
                 newEventDto.getTitle(),
                 0L

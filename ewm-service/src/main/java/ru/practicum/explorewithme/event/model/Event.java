@@ -1,6 +1,7 @@
 package ru.practicum.explorewithme.event.model;
 
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 import ru.practicum.explorewithme.category.model.Category;
 import ru.practicum.explorewithme.user.model.User;
 
@@ -24,7 +25,7 @@ public class Event {
     private String annotation;
 
     @JoinColumn(name = "category_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Category category;
 
     @Column(name = "confirmed_requests")
@@ -40,11 +41,11 @@ public class Event {
     private LocalDateTime eventDate;
 
     @JoinColumn(name = "initiator_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private User initiator;
 
     @JoinColumn(name = "location_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Location location;
 
     @Column

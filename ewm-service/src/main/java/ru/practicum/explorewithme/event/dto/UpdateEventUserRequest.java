@@ -3,20 +3,23 @@ package ru.practicum.explorewithme.event.dto;
 import lombok.Getter;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Positive;
+
 @Getter
 public class UpdateEventUserRequest {
 
-    @Length(max = 1024)
+    @Length(min = 20, max = 2000)
     private String annotation;
     private Long category;
-    @Length(max = 5000)
+    @Length(min = 20, max = 7000)
     private String description;
     private String eventDate;
     private LocationDto location;
     private Boolean paid;
-    private Integer participantsLimit;
+    @Positive
+    private Integer participantLimit;
     private Boolean requestModeration;
     private String stateAction;
-    @Length(max = 256)
+    @Length(min = 3, max = 120)
     private String title;
 }

@@ -82,7 +82,7 @@ public class EventController {
                                                @RequestParam(required = false) Boolean paid,
                                                @RequestParam(required = false) String rangeStart,
                                                @RequestParam(required = false) String rangeEnd,
-                                               @RequestParam(required = false) Boolean onlyAvailable,
+                                               @RequestParam(defaultValue = "true") Boolean onlyAvailable,
                                                @RequestParam(required = false) String sort,
                                                @RequestParam(defaultValue = "0") int from,
                                                @RequestParam(defaultValue = "10") int size,
@@ -116,7 +116,7 @@ public class EventController {
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto patchEventAdmin(@PathVariable Long eventId,
                                         @Valid @RequestBody UpdateEventAdminRequest request) {
-        log.info("Получен запрос GET /admin/events/{eventId}");
+        log.info("Получен запрос PATCH /admin/events/{eventId}");
         return eventService.patchEventAdmin(eventId, request);
     }
 

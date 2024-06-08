@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.explorewithme.EndpointHitDto;
 import ru.practicum.explorewithme.StatsClient;
@@ -110,8 +109,8 @@ public class EventServiceImpl implements EventService {
         if (request.getPaid() != null) {
             event.setPaid(request.getPaid());
         }
-        if (request.getParticipantsLimit() != null) {
-            event.setParticipantLimit(request.getParticipantsLimit());
+        if (request.getParticipantLimit() != null) {
+            event.setParticipantLimit(request.getParticipantLimit());
         }
         if (request.getRequestModeration() != null) {
             event.setRequestModeration(request.getRequestModeration());
@@ -360,8 +359,8 @@ public class EventServiceImpl implements EventService {
         if (request.getPaid() != null) {
             event.setPaid(request.getPaid());
         }
-        if (request.getParticipantsLimit() != null) {
-            event.setParticipantLimit(request.getParticipantsLimit());
+        if (request.getParticipantLimit() != null) {
+            event.setParticipantLimit(request.getParticipantLimit());
         }
         if (request.getRequestModeration() != null) {
             event.setRequestModeration(request.getRequestModeration());

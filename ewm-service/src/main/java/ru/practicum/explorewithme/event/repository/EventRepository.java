@@ -15,7 +15,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByInitiatorId(Long userId, PageRequest page);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.paid = ?2 " +
@@ -27,7 +27,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllOnlyAvailable(String text, Boolean paid, LocalDateTime start, LocalDateTime end,
                                      List<Category> categories, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.eventDate > ?2 " +
@@ -38,7 +38,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllOnlyAvailable(String text, LocalDateTime start, LocalDateTime end, List<Category> categories,
                                      PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.paid = ?2 " +
@@ -49,7 +49,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllOnlyAvailable(String text, Boolean paid, LocalDateTime start, LocalDateTime end,
                                      PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.paid = ?1 " +
             "AND e.eventDate > ?2 " +
             "AND e.eventDate < ?3 " +
@@ -59,7 +59,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllOnlyAvailable(Boolean paid, LocalDateTime start, LocalDateTime end, List<Category> categories,
                                      PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.eventDate > ?2 " +
@@ -68,7 +68,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND e.confirmedRequests < e.participantLimit")
     List<Event> findAllOnlyAvailable(String text, LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.eventDate > ?1 " +
             "AND e.eventDate < ?2 " +
             "AND e.category IN (?3) " +
@@ -77,7 +77,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllOnlyAvailable(LocalDateTime start, LocalDateTime end, List<Category> categories,
                                      PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.paid = ?1 " +
             "AND e.eventDate > ?2 " +
             "AND e.eventDate < ?3 " +
@@ -85,14 +85,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND e.confirmedRequests < e.participantLimit")
     List<Event> findAllOnlyAvailable(Boolean paid, LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.eventDate > ?1 " +
             "AND e.eventDate < ?2 " +
             "AND e.state = 'PUBLISHED' " +
             "AND e.confirmedRequests < e.participantLimit")
     List<Event> findAllOnlyAvailable(LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.paid = ?2 " +
@@ -103,7 +103,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAll(String text, Boolean paid, LocalDateTime start, LocalDateTime end, List<Category> categories,
                         PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.eventDate > ?2 " +
@@ -113,7 +113,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAll(String text, LocalDateTime start, LocalDateTime end, List<Category> categories,
                         PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.paid = ?2 " +
@@ -122,7 +122,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND e.state = 'PUBLISHED'")
     List<Event> findAll(String text, Boolean paid, LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (LOWER(e.annotation) LIKE %?1% " +
             "OR LOWER(e.description) LIKE %?1%) " +
             "AND e.eventDate > ?2 " +
@@ -130,13 +130,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND e.state = 'PUBLISHED'")
     List<Event> findAll(String text, LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.eventDate > ?1 " +
             "AND e.eventDate < ?2 " +
             "AND e.state = 'PUBLISHED'")
     List<Event> findAll(LocalDateTime start, LocalDateTime end, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.paid = ?1 " +
             "AND e.eventDate > ?2 " +
             "AND e.eventDate < ?3 " +
@@ -145,14 +145,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAll(Boolean paid, LocalDateTime start, LocalDateTime end, List<Category> categories,
                         PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.eventDate > ?1 " +
             "AND e.eventDate < ?2 " +
             "AND e.category IN (?3) " +
             "AND e.state = 'PUBLISHED'")
     List<Event> findAll(LocalDateTime start, LocalDateTime end, List<Category> categories, PageRequest pageRequest);
 
-    @Query("SELECT e FROM events AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE e.paid = ?1 " +
             "AND e.eventDate > ?2 " +
             "AND e.eventDate < ?3 " +

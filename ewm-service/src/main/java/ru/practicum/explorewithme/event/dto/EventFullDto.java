@@ -13,7 +13,7 @@ public class EventFullDto {
 
     private Long id;
     private String annotation;
-    private CategoryDto categoryDto;
+    private CategoryDto category;
     private Long confirmedRequests;
     private String createdOn;
     private String description;

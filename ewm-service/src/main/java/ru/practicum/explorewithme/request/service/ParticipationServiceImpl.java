@@ -59,17 +59,17 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
         if (event.getState() != State.PUBLISHED) {
             throw new EventIsNotPublishedException("Нельзя участвовать в неопубликованном событии");
         }
-
-        if (!event.getRequestModeration()) {
+        if (event.getConfirmedRequests() >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
+            throw new ParticipationLimitExceededException("Лимит участников превышен");
+        }
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventRepository.save(event);
             ParticipationRequest participationRequest = new ParticipationRequest(null, LocalDateTime.now(), event, user, State.CONFIRMED);
             return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
-        } else if (event.getConfirmedRequests() < event.getParticipantLimit()){
+        } else {
             ParticipationRequest participationRequest = new ParticipationRequest(null, LocalDateTime.now(), event, user, State.PENDING);
             return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
-        } else {
-            throw new ParticipationLimitExceededException("Лимит участников превышен");
         }
     }
 
@@ -96,7 +96,7 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("События с id = " + eventId + " не существует"));
         List<ParticipationRequest> participationRequests = participationRequestRepository.findAllById(request.getRequestIds());
         if (!event.getRequestModeration()) {
-            if (event.getConfirmedRequests() <= event.getParticipantLimit()) {
+            if (event.getConfirmedRequests() >= event.getParticipantLimit()) {
                 throw new ParticipationLimitExceededException("Лимит участников превышен");
             }
             for (ParticipationRequest participationRequest : participationRequests) {
@@ -113,13 +113,16 @@ public class ParticipationServiceImpl implements ParticipationRequestService {
 
         for (ParticipationRequest participationRequest : participationRequests) {
             if (status == State.CONFIRMED) {
-                if (event.getConfirmedRequests() <= event.getParticipantLimit()) {
+                if (event.getConfirmedRequests() >= event.getParticipantLimit()) {
                     throw new ParticipationLimitExceededException("Лимит участников превышен");
                 }
                 event.setConfirmedRequests(event.getConfirmedRequests() + 1);
                 participationRequest.setStatus(State.CONFIRMED);
                 confirmedRequests.add(participationRequest);
             } else {
+                if (event.getConfirmedRequests() >= event.getParticipantLimit()) {
+                    throw new ParticipationLimitExceededException("Лимит участников превышен");
+                }
                 participationRequest.setStatus(State.REJECTED);
                 rejectedRequests.add(participationRequest);
             }
