@@ -1,7 +1,6 @@
 package ru.practicum.explorewithme.event.model;
 
 import lombok.*;
-import org.hibernate.annotations.Cascade;
 import ru.practicum.explorewithme.category.model.Category;
 import ru.practicum.explorewithme.user.model.User;
 
