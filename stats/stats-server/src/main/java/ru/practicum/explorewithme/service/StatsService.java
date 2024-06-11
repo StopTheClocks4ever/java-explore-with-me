@@ -11,4 +11,6 @@ public interface StatsService {
     HitResponse addEndpointHit(EndpointHitDto hitDto);
 
     List<ViewStatsDto> getStats(String start, String end, List<String> uris, Boolean unique);
+
+    Boolean checkUnique(String uri, String ip);
 }

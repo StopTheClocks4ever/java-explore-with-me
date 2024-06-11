@@ -36,4 +36,11 @@ public class StatsController {
         log.info("Получен запрос GET /stats");
         return statsService.getStats(start, end, uris, unique);
     }
+
+    @GetMapping("/unique")
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean checkUnique(@RequestParam(name = "uri") String uri,
+                               @RequestParam(name = "ip") String ip) {
+        return statsService.checkUnique(uri, ip);
+    }
 }
