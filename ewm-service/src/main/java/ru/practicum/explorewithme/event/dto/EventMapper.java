@@ -106,4 +106,11 @@ public class EventMapper {
         }
         return shortDtos;
     }
+
+    public static EventCommentDto toEventCommentDto(Event event) {
+        return new EventCommentDto(
+                event.getId(),
+                event.getTitle()
+        );
+    }
 }
