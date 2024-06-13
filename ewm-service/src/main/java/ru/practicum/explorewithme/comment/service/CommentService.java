@@ -14,4 +14,10 @@ public interface CommentService {
     void privateDeleteComment(Long userId, Long commentId);
 
     CommentDto privatePatchComment(Long userId, Long commentId, NewCommentDto newCommentDto);
+
+    void adminDeleteComment(Long commentId);
+
+    List<CommentDto> adminGetCommentByUser(Long userId, int from, int size);
+
+    List<CommentDto> adminGetCommentsSearch(String text, int from, int size);
 }

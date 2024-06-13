@@ -53,4 +53,29 @@ public class CommentController {
         log.info("Получен запрос PATCH /users/" + userId + "/comments/" + commentId);
         return commentService.privatePatchComment(userId, commentId, newCommentDto);
     }
+
+    @DeleteMapping("/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void adminDeleteComment(@PathVariable Long commentId) {
+        log.info("Получен запрос DELETE /comments/" + commentId);
+        commentService.adminDeleteComment(commentId);
+    }
+
+    @GetMapping("/user/{userId}/comments")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentDto> adminGetCommentsByUser(@PathVariable Long userId,
+                                                   @RequestParam(defaultValue = "0") int from,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        log.info("Получен запрос GET /user/" + userId + "/comments");
+        return commentService.adminGetCommentByUser(userId, from, size);
+    }
+
+    @GetMapping("/comments/search")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentDto> adminGetCommentsSearch(@RequestParam String text,
+                                                   @RequestParam(defaultValue = "0") int from,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        log.info("Получен запрос GET /comments/search, поисковой запрос = " + text);
+        return commentService.adminGetCommentsSearch(text, from, size);
+    }
 }

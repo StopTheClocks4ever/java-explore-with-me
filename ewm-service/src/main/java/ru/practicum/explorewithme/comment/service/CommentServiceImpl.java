@@ -41,7 +41,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> publicGetCommentByEventId(Long eventId, int from, int size) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException("События с id = " + eventId + " не существует"));
-        PageRequest page = PageCreatorUtil.createPage(from, size);
+        PageRequest page = PageCreatorUtil.createPage(from, size, "created");
         List<Comment> comments = commentRepository.findAllByEventId(eventId, page);
         log.info("Найдены комментарии: " + comments);
         return CommentMapper.listToCommentDtos(comments);
@@ -62,7 +62,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void privateDeleteComment(Long userId, Long commentId) {
         User author = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
-        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException("Пользователя с id = " + userId + " не существует"));
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException("Пользователя с id = " + commentId + " не существует"));
         if (!Objects.equals(comment.getAuthor().getId(), author.getId())) {
             throw new NotAuthorException("Пользователь с id = " + userId + " не является автором комментария");
         }
@@ -79,5 +79,27 @@ public class CommentServiceImpl implements CommentService {
         comment.setContent(newCommentDto.getContent());
         comment.setEdited(LocalDateTime.now());
         return CommentMapper.toCommentDto(commentRepository.save(comment));
+    }
+
+    @Override
+    public void adminDeleteComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException("Пользователя с id = " + commentId + " не существует"));
+        commentRepository.delete(comment);
+    }
+
+    @Override
+    public List<CommentDto> adminGetCommentByUser(Long userId, int from, int size) {
+        User author = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователя с id = " + userId + " не существует"));
+        PageRequest page = PageCreatorUtil.createPage(from, size, "created");
+        List<Comment> comments = commentRepository.findAllByAuthorId(userId, page);
+        log.info("Найдены комментарии: " + comments);
+        return CommentMapper.listToCommentDtos(comments);
+    }
+
+    @Override
+    public List<CommentDto> adminGetCommentsSearch(String text, int from, int size) {
+        PageRequest page = PageCreatorUtil.createPage(from, size, "created");
+        List<Comment> comments = commentRepository.findAllByContent(text, page);
+        return CommentMapper.listToCommentDtos(comments);
     }
 }
