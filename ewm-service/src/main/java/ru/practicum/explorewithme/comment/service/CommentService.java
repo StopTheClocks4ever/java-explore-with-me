@@ -6,7 +6,6 @@ import ru.practicum.explorewithme.comment.dto.NewCommentDto;
 import java.util.List;
 
 public interface CommentService {
-    
     List<CommentDto> publicGetCommentByEventId(Long eventId, int from, int size);
 
     CommentDto privateAddComment(Long userId, Long eventId, NewCommentDto newCommentDto);
