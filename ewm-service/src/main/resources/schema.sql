@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS comments (
     author_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL,
     created TIMESTAMP NOT NULL,
-    edited TIMESTAMP NOT NULL,
+    edited TIMESTAMP,
     CONSTRAINT pk_comments PRIMARY KEY (id),
     CONSTRAINT fk_comments_users FOREIGN KEY (author_id) REFERENCES users(id),
     CONSTRAINT fr_comments_event FOREIGN KEY (event_id) REFERENCES events(id)
@@ -97,4 +97,4 @@ CREATE TABLE IF NOT EXISTS comments (
 
 CREATE INDEX ix_content ON comments (content);
 CREATE INDEX ix_author_id ON comments (author_id);
-CREATE INDEX ix_event_id ON comments (event_id);
+CREATE INDEX ix_event_id_comments ON comments (event_id);
